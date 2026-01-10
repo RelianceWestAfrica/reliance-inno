@@ -1,0 +1,171 @@
+generator client {
+    provider = "prisma-client-js"
+
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  Admin
+  RegularUser
+}
+
+enum CheckInStatus {
+  present_ontime
+  present_late
+  absent
+  declined
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  achieved
+  closed
+  blocked
+  need_review
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          UserRole  @default(RegularUser)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  eventsCreated Event[]
+  checkIns      CheckIn[]
+  assignedTasks Task[]     @relation("AssignedTasks")
+  createdTasks  Task[]     @relation("CreatedTasks")
+  documents     Document[]
+  
+  @@map("users")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  name        String
+  description String?   @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  maxGuests   Int?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  guestGroups  GuestGroup[]
+  taskGroups   TaskGroup[]
+  documents    Document[]
+  
+  @@map("events")
+}
+
+model GuestGroup {
+  id        String   @id @default(cuid())
+  name      String
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guests Guest[]
+  
+  @@map("guest_groups")
+}
+
+model Guest {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String?
+  email        String?
+  guestGroupId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  guestGroup GuestGroup @relation(fields: [guestGroupId], references: [id], onDelete: Cascade)
+  checkIns   CheckIn[]
+  
+  @@map("guests")
+}
+
+model CheckIn {
+  id            String         @id @default(cuid())
+  guestId       String
+  checkInTime   DateTime       @default(now())
+  status        CheckInStatus
+  description   String?        @db.Text
+  checkedInById String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relations
+  guest        Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  checkedInBy  User  @relation(fields: [checkedInById], references: [id], onDelete: Cascade)
+  
+  @@map("check_ins")
+}
+
+model TaskGroup {
+  id        String   @id @default(cuid())
+  name      String
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tasks Task[]
+  
+  @@map("task_groups")
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?    @db.Text
+  deadline     DateTime?
+  status       TaskStatus @default(todo)
+  blockedBy    String?    @db.Text
+  taskGroupId  String
+  assignedToId String?
+  createdById  String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  taskGroup  TaskGroup @relation(fields: [taskGroupId], references: [id], onDelete: Cascade)
+  assignedTo User?     @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy  User      @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: Cascade)
+  
+  @@map("tasks")
+}
+
+model Document {
+  id                String   @id @default(cuid())
+  fileName          String
+  originalFileName  String
+  cloud_storage_path String
+  isPublic          Boolean  @default(false)
+  fileSize          Int?
+  mimeType          String?
+  eventId           String
+  uploadedById      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  event        Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedBy   User  @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  
+  @@map("documents")
+}
