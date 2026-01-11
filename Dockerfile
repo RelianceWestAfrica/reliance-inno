@@ -18,7 +18,7 @@ RUN npx prisma generate
 #RUN #npx prisma db seed
 
 # Build Next.js
-#RUN npm run start
+RUN npm run build
 
 EXPOSE 3000
 

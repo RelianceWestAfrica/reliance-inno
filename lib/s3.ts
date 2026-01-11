@@ -1,7 +1,6 @@
 import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createS3Client, getBucketConfig } from "./aws-config";
-import { uploadFile } from "@/lib/storage/local"; 
 
 
 const s3Client = createS3Client();
