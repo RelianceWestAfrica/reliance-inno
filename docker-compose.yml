@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: mysql://reliance:reliance_password@db:3306/reliance_inno
+      DATABASE_URL: mysql://root:yourpassword@77.37.121.56:3306/relianceinno
     restart: always
 
 volumes:
