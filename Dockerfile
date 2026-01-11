@@ -12,10 +12,10 @@ COPY . .
 RUN npx prisma generate
 
 # Prisma migrate
-RUN npx prisma migrate dev 
+#RUN npx prisma migrate dev
 
 # Prisma seed
-RUN npx prisma db seed
+RUN #npx prisma db seed
 
 # Build Next.js
 RUN npm run build
